@@ -17,6 +17,7 @@ setup(
     keywords="distribution linbit",
     url="https://github.com/LINBIT/lbdist",
     packages=['lbdist'],
+    scripts=['lbdisttool.py'],
     # long_description=read('README'),
     classifiers=[
         "Development Status :: 3 - Alpha",
