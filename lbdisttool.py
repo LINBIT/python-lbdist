@@ -14,6 +14,8 @@ parser.add_argument('--dist-version', action='store_true', dest='distversion',
                     help='Query the distribution version')
 parser.add_argument('--family', '-f', action='store_true', dest='family',
                     help='Query the distribution family')
+parser.add_argument('--kmods', '-k', metavar='M', nargs='+',
+                    help='Find the best matching kernel module')
 parser.add_argument('--all', '-a', action='store_true', dest='all',
                     help='Query all information')
 parser.add_argument('--format', choices=('csv', 'space'), default='csv',
@@ -29,6 +31,8 @@ elif args.distversion:
     print(lbdist.LinbitDistribution(args.osrelease).version)
 elif args.family:
     print(lbdist.LinbitDistribution(args.osrelease).family)
+elif args.kmods:
+    print(lbdist.LinbitDistribution(args.osrelease).best_drbd_kmod(args.kmods))
 elif args.all:
     d = lbdist.LinbitDistribution(args.osrelease)
     v = [d.repo_name, d.name, d.version, d.family]

@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import os
 import re
+import platform
+from functools import reduce
 
 
 class Distribution(object):
@@ -178,6 +180,83 @@ class LinbitDistribution(Distribution):
             return 'rhel{0}'.format(vs.get(self._version, '8.1'))
         else:
             raise Exception("Could not determine repository information")
+
+    def best_drbd_kmod(self, choices):
+        # choices should be kernel module packages, they are allowed to have a path prefix
+        # the best matching one, or None is returned
+        if not (self._name.startswith('rhel') or self._name.startswith('centos')):
+            return None
+
+        hostkernel = platform.uname()[2]
+        hostkernelsplit = hostkernel.replace('-', '.')
+        hostkernelsplit = hostkernelsplit.split('.')[::-1]
+        # strip .rpm, x86, from the end
+        for i, e in enumerate(hostkernelsplit):
+            if e.isdigit():
+                hostkernelsplit = hostkernelsplit[i:][::-1]
+                break
+
+        kmap = {}
+        for c in choices:
+            kpart = os.path.basename(c)
+            if not kpart.startswith('kmod-drbd'):
+                continue
+            kpart = '_'.join(kpart.split('_')[1:])  # strip kmod-drbd-x.y.z_ prefix
+            kpart = kpart.split('-')[0]  # strip revision and everything past it
+            kpart = kpart.replace('_', '.')  # convert the '_' in 3.10.0_1062
+
+            if len(kpart) < 3:  # first 3 are the kernel
+                continue
+            valid = True
+            kps = kpart.split('.')
+            for i in range(3):
+                if hostkernelsplit[i] != kps[i]:
+                    valid = False
+                    break
+            if not valid:
+                continue
+
+            kmap['.'.join(kps[3:])] = c
+
+        hostkernelsplit = hostkernelsplit[3:]
+
+        def kcmp(v1, v2):
+            v1s, v2s = v1.split('.'), v2.split('.')
+            hks = hostkernelsplit
+
+            ml = max(len(hks), len(v1s), len(v2s))
+            for lst in (v1s, v2s, hks):
+                lst += [0]*(ml-len(lst))
+
+            for i, e in enumerate(hks):
+                e = int(e)
+                d1 = e - int(v1s[i])
+                d2 = e - int(v2s[i])
+                if d1 == d2:
+                    continue
+                # smaller positive one
+                if d1 >= 0 and d2 >= 0:
+                    if d1 < d2:
+                        return v1
+                    else:
+                        return v2
+                elif d1 >= 0 and d2 < 0:
+                    return v1
+                elif d1 < 0 and d2 >= 0:
+                    return v2
+                else:  # both negative and therefore higher
+                    if d1 < d2:
+                        return v2
+                    else:
+                        return v1
+
+            # no winner as there was no early return
+            return v1
+
+        keys = kmap.keys()
+        if not keys:
+            return None
+        return kmap[reduce(kcmp, keys)]
 
 
 if __name__ == "__main__":
