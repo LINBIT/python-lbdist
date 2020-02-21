@@ -8,7 +8,7 @@ def read(fname):
 
 setup(
     name="lbdist",
-    version="0.1.0",
+    version="0.1.1",
     author="Roland Kammerer",
     author_email="roland.kammerer@linbit.com",
     description=("Detects Linux distributions and exposes name, version, family. "

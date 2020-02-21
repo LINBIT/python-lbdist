@@ -132,7 +132,7 @@ class Distribution(object):
 
 
 class LinbitDistribution(Distribution):
-    def __init__(self, osreleasepath):
+    def __init__(self, osreleasepath='/etc/os-release'):
         super(LinbitDistribution, self).__init__(osreleasepath)
 
     @property
