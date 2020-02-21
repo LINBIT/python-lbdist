@@ -175,6 +175,7 @@ class LinbitDistribution(Distribution):
         elif self._name == 'rhcos':
             vs = {
                 '4.1': '8.0',
+                '4.2': '8.0'
                 '4.3': '8.1'
             }
             return 'rhel{0}'.format(vs.get(self._version, '8.1'))
