@@ -182,10 +182,14 @@ class LinbitDistribution(Distribution):
         else:
             raise Exception("Could not determine repository information")
 
-    def best_drbd_kmod(self, choices):
+    @classmethod
+    def best_drbd_kmod(cls, choices, osreleasepath='/etc/os-release', name=None):
         # choices should be kernel module packages, they are allowed to have a path prefix
         # the best matching one, or None is returned
-        if not (self._name.startswith('rhel') or self._name.startswith('centos')):
+        if not name:
+            name = cls(osreleasepath)._name
+
+        if not (name.startswith('rhel') or name.startswith('centos')):
             return None
 
         hostkernel = platform.uname()[2]
