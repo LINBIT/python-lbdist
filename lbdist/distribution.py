@@ -190,13 +190,13 @@ class LinbitDistribution(Distribution):
         if not name:
             name = cls(osreleasepath)._name
 
-        if not (name.startswith('rhel') or name.startswith('centos')):
+        if not (name.startswith('rhel') or name.startswith('centos') or name.startswith('sles')):
             return None
 
         hostkernel = platform.uname()[2]
         hostkernelsplit = hostkernel.replace('-', '.')
         hostkernelsplit = hostkernelsplit.split('.')[::-1]
-        # strip .rpm, x86, from the end
+        # strip x86, -default,... from the end
         for i, e in enumerate(hostkernelsplit):
             if e.isdigit():
                 hostkernelsplit = hostkernelsplit[i:][::-1]
@@ -205,9 +205,12 @@ class LinbitDistribution(Distribution):
         kmap = {}
         for c in choices:
             kpart = os.path.basename(c)
-            if not kpart.startswith('kmod-drbd'):
+            if not (kpart.startswith('kmod-drbd') or kpart.startswith('drbd-kmp')):
                 continue
             kpart = '_'.join(kpart.split('_')[1:])  # strip kmod-drbd-x.y.z_ prefix
+            if name.startswith('sles') and kpart[0] == 'k':  # strip k from k4.12.14_197.29-1
+                kpart = kpart[1:]
+
             kpart = kpart.split('-')[0]  # strip revision and everything past it
             kpart = kpart.replace('_', '.')  # convert the '_' in 3.10.0_1062
 
