@@ -8,7 +8,7 @@ from functools import reduce
 class Distribution(object):
     def __init__(self, osreleasepath='/etc/os-release'):
         self._supported_dist_IDs = ('amzn', 'centos', 'rhel', 'rhcos', 'debian',
-                                    'ubuntu', 'xenenterprise', 'ol', 'sles')
+                                    'ubuntu', 'xenenterprise', 'ol', 'sles', 'opensuse-leap')
         self._osreleasepath = osreleasepath
 
         self._osrelease = {}
@@ -43,6 +43,8 @@ class Distribution(object):
                     osrelease[k] = v
             if osrelease.get('ID', '') == 'ol':  # sorry, but you really are...
                 osrelease['ID_LIKE'] = 'rhel'
+            elif osrelease.get('ID', '') == 'opensuse-leap':  # they have ID_LIKE="suse opensuse"
+                osrelease['ID_LIKE'] = 'sles'
 
         # centos 6, centos first, as centos has centos-release and redhat-release
         elif os.path.exists('/etc/centos-release'):
@@ -97,7 +99,7 @@ class Distribution(object):
             version = self._osrelease['VERSION_ID']
         elif self._name == 'ol':
             version = self._osrelease['VERSION_ID']
-        elif self._name == 'sles':
+        elif self._name == 'sles' or self._name == 'opensuse-leap':
             version = self._osrelease['VERSION_ID']
         else:
             raise Exception("Could not determine version information")
@@ -164,14 +166,14 @@ class LinbitDistribution(Distribution):
             if '.' in v:
                 v = v.split('.')[0]
             return '{0}{1}'.format(d, v)
-        elif self._name == 'sles':
+        elif self._name == 'sles' or self._name == 'opensuse-leap':
             v = self._version
             if '.' in v:
                 v = v.split('.')
                 v = v[0] + '-sp' + v[1]
             # else: TODO(rck): actually I don't know how non SPx looks like
             # in the repo it is just like "sles12"
-            return '{0}{1}'.format(self._name, v)
+            return 'sles{1}'.format(self._name, v)
         elif self._name == 'rhcos':
             vs = {
                 '4.1': '8.0',
