@@ -180,8 +180,9 @@ class LinbitDistribution(Distribution):
                 '4.2': '8.0',
                 '4.3': '8.1',
                 '4.4': '8.1',
+                '4.5': '8.2',
             }
-            return 'rhel{0}'.format(vs.get(self._version, '8.1'))
+            return 'rhel{0}'.format(vs.get(self._version, '8.2'))
         else:
             raise Exception("Could not determine repository information")
 
