@@ -215,9 +215,13 @@ class LinbitDistribution(Distribution):
                 kpart = kpart[1:]
 
             kpart = kpart.split('-')[0]  # strip revision and everything past it
-            kpart = kpart.replace('_', '.')  # convert the '_' in 3.10.0_1062
+            # convert the '_' in 3.10.0_1062,
+            # but only the first one as in 4.18.0_80.1.2.el8_0.x86_64
+            kpart = kpart.replace('_', '.', 1)
 
             kps = kpart.split('.')
+            # the weird stuff should now be at the end of the array (arch, el*)
+            kps = list(filter(lambda a: a.isdigit(), kps))
             if len(kps) < 3:  # first 3 are the kernel
                 continue
             valid = True
