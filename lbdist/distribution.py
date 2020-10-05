@@ -217,10 +217,11 @@ class LinbitDistribution(Distribution):
             kpart = kpart.split('-')[0]  # strip revision and everything past it
             kpart = kpart.replace('_', '.')  # convert the '_' in 3.10.0_1062
 
-            if len(kpart) < 3:  # first 3 are the kernel
+            kps = kpart.split('.')
+            if len(kps) < 3:  # first 3 are the kernel
                 continue
             valid = True
-            kps = kpart.split('.')
+
             for i in range(3):
                 if hostkernelsplit[i] != kps[i]:
                     valid = False
