@@ -76,7 +76,8 @@ class Distribution(object):
             with open('/etc/centos-release') as cr:
                 line = cr.readline().strip()
             # .* because the nice centos people changed their string between 6 and 7 (added 'Linux')
-            m = re.search(r'^CentOS .* ([\d\.]+) \(.*\)$', line)
+            # and again in the middle of the 8 series (removed '(Core|Final)')
+            m = re.search(r'^CentOS .* ([\d\.]+)', line)
             if not m:
                 raise Exception('Could not determine version information for your Centos')
             version = m.group(1)
