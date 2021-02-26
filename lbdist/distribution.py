@@ -174,7 +174,7 @@ class LinbitDistribution(Distribution):
                 v = v[0] + '-sp' + v[1]
             # else: TODO(rck): actually I don't know how non SPx looks like
             # in the repo it is just like "sles12"
-            return 'sles{1}'.format(self._name, v)
+            return 'sles{0}'.format(v)
         elif self._name == 'rhcos':
             vs = {
                 '4.1': '8.0',
