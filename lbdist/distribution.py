@@ -182,6 +182,8 @@ class LinbitDistribution(Distribution):
                 '4.3': '8.1',
                 '4.4': '8.1',
                 '4.5': '8.2',
+                '4.6': '8.2',
+                '4.7': '8.3',
             }
             return 'rhel{0}'.format(vs.get(self._version, '8.2'))
         else:
