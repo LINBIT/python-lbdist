@@ -2,12 +2,15 @@
 
 import argparse
 import lbdist
+import sys
 
 parser = argparse.ArgumentParser(description='a uname like program to query distribution information')
 parser.add_argument('--os-release', dest='osrelease',
                     help='Path to the os-release file', default='/etc/os-release')
 parser.add_argument('--force-name', dest='forcename',
                     help='Force distribution name. Only relvant for "-k"')
+parser.add_argument('--force-kernel-release', dest='forcekernelrelease',
+                    help='Force kernel release (usually uname -r). Only relvant for "-k"')
 parser.add_argument('--linbit-reponame', '-l', action='store_true', dest='lbrepo',
                     help='Query the LINBIT internal distribution name/repo name')
 parser.add_argument('--name', '-n', action='store_true', dest='name',
@@ -36,9 +39,12 @@ elif args.family:
 elif args.kmods:
     best = lbdist.LinbitDistribution.best_drbd_kmod(args.kmods,
                                                     osreleasepath=args.osrelease,
-                                                    name=args.forcename)
+                                                    name=args.forcename,
+                                                    hostkernel=args.forcekernelrelease)
     if best:
         print(best)
+    else:
+        sys.exit(1)
 elif args.all:
     d = lbdist.LinbitDistribution(args.osrelease)
     v = [d.repo_name, d.name, d.version, d.family]
