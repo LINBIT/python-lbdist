@@ -7,7 +7,7 @@ from functools import reduce
 
 class Distribution(object):
     def __init__(self, osreleasepath='/etc/os-release'):
-        self._supported_dist_IDs = ('amzn', 'centos', 'rhel', 'rhcos', 'debian',
+        self._supported_dist_IDs = ('amzn', 'centos', 'rhel', 'rhcos', 'almalinux', 'debian',
                                     'ubuntu', 'xenenterprise', 'ol', 'sles', 'opensuse-leap')
         self._osreleasepath = osreleasepath
 
@@ -83,6 +83,8 @@ class Distribution(object):
             version = m.group(1)
         elif self._name == 'amzn':
             version = self._osrelease['VERSION_ID']
+        elif self._name == 'almalinux':
+            version = self._osrelease['VERSION_ID']
         elif self._name == 'rhel':
             try:
                 version = self._osrelease['VERSION_ID']
@@ -145,11 +147,9 @@ class LinbitDistribution(Distribution):
         # use '{0}' instead of '{}', RHEL 6 does not handle the modern version
         if self._name in ('debian', 'ubuntu'):
             return '{0}-{1}'.format(self._name, self._version)
-        elif self._name in ('rhel', 'centos', 'amzn'):
-            d = self._name
-            if self._name == 'centos':
-                d = 'rhel'
-            elif self._name == 'amzn':
+        elif self._name in ('rhel', 'centos', 'amzn', 'almalinux'):
+            d = 'rhel'
+            if self._name == 'amzn':
                 d = 'amazonlinux'
 
             v = self._version
@@ -196,7 +196,9 @@ class LinbitDistribution(Distribution):
         if not name:
             name = cls(osreleasepath)._name
 
-        if not (name.startswith('rhel') or name.startswith('centos') or name.startswith('sles')):
+        # keep as startswith, which allows forcing rhel by setting the family as name
+        if not (name.startswith('rhel') or name.startswith('centos') or
+                name.startswith('almalinux') or name.startswith('sles')):
             return None
 
         if not hostkernel:
