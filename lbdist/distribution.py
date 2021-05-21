@@ -77,7 +77,7 @@ class Distribution(object):
                 line = cr.readline().strip()
             # .* because the nice centos people changed their string between 6 and 7 (added 'Linux')
             # and again in the middle of the 8 series (removed '(Core|Final)')
-            m = re.search(r'^CentOS .* ([\d\.]+)', line)
+            m = re.search(r'^CentOS .* ([\d.]+)', line)
             if not m:
                 raise Exception('Could not determine version information for your Centos')
             version = m.group(1)
@@ -94,7 +94,7 @@ class Distribution(object):
                 line = ''
                 with open('/etc/redhat-release') as cr:
                     line = cr.readline().strip()
-                m = re.search(r'^Red Hat Enterprise .* ([\d\.]+) \(.*\)$', line)
+                m = re.search(r'^Red Hat Enterprise .* ([\d.]+) \(.*\)$', line)
                 if not m:
                     raise Exception('Could not determine version information for your RHEL6')
                 version = m.group(1)
