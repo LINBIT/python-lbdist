@@ -148,7 +148,7 @@ class LinbitDistribution(Distribution):
     def repo_name(self):
         # use '{0}' instead of '{}', RHEL 6 does not handle the modern version
         if self._name in ('debian', 'ubuntu'):
-            return '{0}-{1}'.format(self._name, self._version)
+            return self._version
         elif self._name in ('rhel', 'centos', 'amzn', 'almalinux', 'rocky'):
             d = 'rhel'
             if self._name == 'amzn':
