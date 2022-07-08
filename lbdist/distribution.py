@@ -178,6 +178,7 @@ class LinbitDistribution(Distribution):
             # in the repo it is just like "sles12"
             return 'sles{0}'.format(v)
         elif self._name == 'rhcos':
+            osrel_ver = self.osrelease.get('RHEL_VERSION')
             vs = {
                 '4.1': '8.0',
                 '4.2': '8.0',
@@ -187,7 +188,7 @@ class LinbitDistribution(Distribution):
                 '4.6': '8.2',
                 '4.7': '8.3',
             }
-            return 'rhel{0}'.format(vs.get(self._version, '8.2'))
+            return 'rhel{0}'.format(vs.get(self._version) or osrel_ver or '8.6')
         else:
             raise Exception("Could not determine repository information")
 
