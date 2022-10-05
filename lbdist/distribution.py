@@ -1,14 +1,17 @@
 #!/usr/bin/env python
 import os
 import re
+import subprocess
 import platform
 from functools import reduce
 
 
 class Distribution(object):
+    _pveversion = '/usr/bin/pveversion'
+
     def __init__(self, osreleasepath='/etc/os-release'):
         self._supported_dist_IDs = ('amzn', 'centos', 'rhel', 'rhcos', 'almalinux', 'rocky', 'debian',
-                                    'ubuntu', 'xenenterprise', 'ol', 'sles', 'opensuse-leap')
+                                    'ubuntu', 'xenenterprise', 'ol', 'sles', 'opensuse-leap', 'proxmox')
         self._osreleasepath = osreleasepath
 
         self._osrelease = {}
@@ -29,7 +32,10 @@ class Distribution(object):
         # gernates a slightly oppinionated osrelease dict that is similar to /etc/os-release
         # for very old distris it just sets the bare minimum to determine version and family
         osrelease = {}
-        if os.path.exists(self._osreleasepath):
+        if os.path.exists(Distribution._pveversion):
+            osrelease['ID'] = 'proxmox'
+            osrelease['ID_LIKE'] = 'debian'
+        elif os.path.exists(self._osreleasepath):
             with open(self._osreleasepath) as o:
                 for line in o:
                     line = line.strip()
@@ -107,6 +113,10 @@ class Distribution(object):
             version = self._osrelease['VERSION_ID']
         elif self._name == 'sles' or self._name == 'opensuse-leap':
             version = self._osrelease['VERSION_ID']
+        elif self._name == 'proxmox':
+            version = subprocess.check_output([Distribution._pveversion]).decode().strip().split('/')[1]
+            # this gave us something like 7.2-5, cut the '-' part
+            version = version.split('-')[0]
         else:
             raise Exception("Could not determine version information")
 
@@ -178,6 +188,12 @@ class LinbitDistribution(Distribution):
             # else: TODO(rck): actually I don't know how non SPx looks like
             # in the repo it is just like "sles12"
             return 'sles{0}'.format(v)
+        elif self._name == 'proxmox':
+            v = self._version
+            if '.' in v:
+                v = v.split('.')
+                v = v[0]
+            return 'proxmox-{0}'.format(v)
         elif self._name == 'rhcos':
             osrel_ver = self.osrelease.get('RHEL_VERSION')
             vs = {
