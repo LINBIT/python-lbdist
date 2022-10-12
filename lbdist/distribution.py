@@ -63,7 +63,8 @@ class Distribution(object):
             try:
                 v = self._osrelease['VERSION']
             except KeyError:
-                raise Exception('No "VERSION" in your Debian {0}, are you running testing/sid?'.format(self._osreleasepath))
+                msg = 'No "VERSION" in your Debian {0}, are you running testing/sid?'.format(self._osreleasepath)
+                raise Exception(msg)
 
             m = re.search(r'^\d+ \((\w+)\)$', v)
             if not m:
