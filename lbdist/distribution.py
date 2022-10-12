@@ -5,6 +5,13 @@ import subprocess
 import platform
 from functools import reduce
 
+try:
+    from urllib2 import urlopen
+    from urllib2 import Request
+except ImportError:
+    from urllib.request import urlopen
+    from urllib.request import Request
+
 
 class Distribution(object):
     _pveversion = '/usr/bin/pveversion'
@@ -208,6 +215,97 @@ class LinbitDistribution(Distribution):
             return 'rhel{0}'.format(vs.get(self._version) or osrel_ver or '8.6')
         else:
             raise Exception("Could not determine repository information")
+
+    def epilogue(self, with_pacemaker=False):
+        pkgs = """Looks like you executed the script on a {0} system
+You might want to install the following packages on this node:
+  {1}"""
+
+        # we want to support old Python, "which" is easy enough
+        def is_in_path(executable):
+            path = os.getenv('PATH')
+            if not path:
+                return False
+            for p in path.split(os.path.pathsep):
+                p = os.path.join(p, executable)
+                if os.path.exists(p) and os.access(p, os.X_OK):
+                    return True
+            return False
+
+        def get_install_tool():
+            # make sure to order by preference
+            if is_in_path('apt'):
+                return 'apt install'
+            if is_in_path('apt-get'):
+                return 'apt-get install'
+            if is_in_path('zypper'):
+                return 'zypper install'
+            if is_in_path('dnf'):
+                return 'dnf install'
+            if is_in_path('yum'):
+                return 'yum install'
+            return '<your package manager install>'
+
+        def get_best_module():
+            uname_r = os.uname()[2]
+            if self._family == 'debian':
+                return 'drbd-module-{0} # or drbd-dkms'.format(uname_r)
+            # something bestkernelmodule should be able to handle
+            # it is fine if this is something bestkernelmodule does not handle,
+            # it will raise an exception and we return the default kmod-drbd
+            os_release = open(self._osreleasepath)
+            data = os_release.read()
+            os_release.close()
+            # TODO: give it a dedicated subdomain with standard port
+            req = Request('http://drbd.io:3030/api/v1/best/'+uname_r, data=data.encode(), method='POST')
+            try:
+                resp = urlopen(req, timeout=5)
+                best = resp.read().decode()
+                # returns a file name including .rpm, split that off
+                # pkgmanagers like dnf don't like extensions/look for local files,...
+                return os.path.splitext(best)[0]
+            except Exception:
+                return 'kmod-drbd'
+
+        def add_controller_satellite(tool):
+            return '\nIf this is a SDS controller node you might want to install:\n' \
+                   '  {0} linbit-sds-controller\n' \
+                   'You can configure a highly-available controller later via:\n' \
+                   '  https://linbit.com/drbd-user-guide/linstor-guide-1_0-en/#s-linstor_ha\n' \
+                   'If this is a SDS satellite node you might want to install:\n' \
+                   '  {1} linbit-sds-satellite\n'.format(tool, tool)
+
+        def add_pacemaker(tool):
+            return '\nIf you intend to use Pacemaker you might want to install:\n' \
+                   '  {0} pacemaker corosync\n'.format(tool)
+
+        install_tool = get_install_tool()
+        best_module = get_best_module()
+        utils = ''
+        if self._family == 'debian':
+            utils = 'drbd-utils'
+        elif self._family == 'sles' or self._family == 'rhel':
+            utils = 'drbd-utils drbd-udev'
+
+        dist = 'GENERIC'
+        doc = 'https://linbit.com/drbd-user-guide/linstor-guide-1_0-en/#p-administration'
+        if is_in_path('oned'):
+            dist = 'OpenNebula frontend'
+            utils += ' linstor-opennebula'
+            doc = 'https://linbit.com/drbd-user-guide/linstor-guide-1_0-en/#ch-opennebula-linstor'
+        elif self._name == 'proxmox':
+            dist = 'PVE'
+            best_module = 'drbd-dkms'
+            utils += ' linstor-proxmox'
+            doc = 'https://linbit.com/drbd-user-guide/linstor-guide-1_0-en/#ch-proxmox-linstor'
+
+        # keep best_module at last position, it might contain a comment section (foo # bar)
+        txt = pkgs.format(dist, install_tool + ' ' + utils + ' ' + best_module)
+        txt += add_controller_satellite(install_tool)
+        if with_pacemaker:
+            txt += add_pacemaker(install_tool)
+        txt += '\nFor documentation see:\n  ' + doc
+        return txt
 
     @classmethod
     def best_drbd_kmod(cls, choices, osreleasepath='/etc/os-release', name=None, hostkernel=None):

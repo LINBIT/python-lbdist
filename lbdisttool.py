@@ -21,6 +21,8 @@ parser.add_argument('--family', '-f', action='store_true', dest='family',
                     help='Query the distribution family')
 parser.add_argument('--kmods', '-k', metavar='M', nargs='+',
                     help='Find the best matching kernel module')
+parser.add_argument('--linbit-epilogue', '-e', action='store_true', dest='epilogue',
+                    help='Query the LINBIT internal pkg hints')
 parser.add_argument('--all', '-a', action='store_true', dest='all',
                     help='Query all information')
 parser.add_argument('--format', choices=('csv', 'space'), default='csv',
@@ -45,6 +47,8 @@ elif args.kmods:
         print(best)
     else:
         sys.exit(1)
+elif args.epilogue:
+    print(lbdist.LinbitDistribution(args.osrelease).epilogue())
 elif args.all:
     d = lbdist.LinbitDistribution(args.osrelease)
     v = [d.repo_name, d.name, d.version, d.family]
