@@ -265,7 +265,13 @@ You might want to install the following packages on this node:
                 # pkgmanagers like dnf don't like extensions/look for local files,...
                 return os.path.splitext(best)[0]
             except Exception:
-                return 'kmod-drbd'
+                # sles or rhel alike:
+                kmod = '<no default kernel module for your distribution>'
+                if self._family == 'rhel':
+                    kmod = 'kmod-drbd'
+                elif self._family == 'sles':
+                    kmod = 'drbd-kmp'
+                return kmod
 
         def add_controller_satellite(tool):
             return '\nIf this is a SDS controller node you might want to install:\n' \
