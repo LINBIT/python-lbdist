@@ -257,7 +257,7 @@ You might want to install the following packages on this node:
             data = os_release.read()
             os_release.close()
             # TODO: give it a dedicated subdomain with standard port
-            req = Request('http://drbd.io:3030/api/v1/best/'+uname_r, data=data.encode(), method='POST')
+            req = Request('http://drbd.io:3030/api/v1/best/'+uname_r, data=data.encode())
             try:
                 resp = urlopen(req, timeout=5)
                 best = resp.read().decode()
