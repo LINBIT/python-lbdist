@@ -217,10 +217,6 @@ class LinbitDistribution(Distribution):
             raise Exception("Could not determine repository information")
 
     def epilogue(self, with_pacemaker=False):
-        pkgs = """Looks like you executed the script on a {0} system
-You might want to install the following packages on this node:
-  {1}"""
-
         # we want to support old Python, "which" is easy enough
         def is_in_path(executable):
             path = os.getenv('PATH')
@@ -306,7 +302,11 @@ You might want to install the following packages on this node:
             doc = 'https://linbit.com/drbd-user-guide/linstor-guide-1_0-en/#ch-proxmox-linstor'
 
         # keep best_module at last position, it might contain a comment section (foo # bar)
-        txt = pkgs.format(dist, install_tool + ' ' + utils + ' ' + best_module)
+        txt = 'Looks like you executed the script on a {0} system'.format(dist)
+        if install_tool.startswith('apt'):
+            txt += '\nEnter "apt update" to update your LINBIT repositories.'
+        txt += '\nYou might want to install the following packages on this node:'
+        txt += '\n  {0}'.format(install_tool + ' ' + utils + ' ' + best_module)
         txt += add_controller_satellite(install_tool)
         if with_pacemaker:
             txt += add_pacemaker(install_tool)
