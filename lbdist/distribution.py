@@ -269,13 +269,13 @@ class LinbitDistribution(Distribution):
                     kmod = 'drbd-kmp'
                 return kmod
 
-        def add_controller_satellite(tool):
-            return '\nIf this is a SDS controller node you might want to install:\n' \
+        def add_controller_satellite(tool, satellite_extra):
+            return '\nIf this is an SDS controller node you might want to install:\n' \
                    '  {0} linbit-sds-controller\n' \
                    'You can configure a highly-available controller later via:\n' \
                    '  https://linbit.com/drbd-user-guide/linstor-guide-1_0-en/#s-linstor_ha\n' \
-                   'If this is a SDS satellite node you might want to install:\n' \
-                   '  {1} linbit-sds-satellite\n'.format(tool, tool)
+                   'If this is an SDS satellite node you might want to install:\n' \
+                   '  {1} linbit-sds-satellite {2}'.format(tool, tool, satellite_extra)
 
         def add_pacemaker(tool):
             return '\nIf you intend to use Pacemaker you might want to install:\n' \
@@ -302,12 +302,12 @@ class LinbitDistribution(Distribution):
             doc = 'https://linbit.com/drbd-user-guide/linstor-guide-1_0-en/#ch-proxmox-linstor'
 
         # keep best_module at last position, it might contain a comment section (foo # bar)
-        txt = 'Looks like you executed the script on a {0} system'.format(dist)
+        txt = 'Looks like you executed the script on a {0} system.'.format(dist)
         if install_tool.startswith('apt'):
             txt += '\nEnter "apt update" to update your LINBIT repositories.'
-        txt += '\nYou might want to install the following packages on this node:'
+        txt += add_controller_satellite(install_tool, best_module)
+        txt += "\nIf you don't intend to run an SDS satellite or controller, a useful set is:"
         txt += '\n  {0}'.format(install_tool + ' ' + utils + ' ' + best_module)
-        txt += add_controller_satellite(install_tool)
         if with_pacemaker:
             txt += add_pacemaker(install_tool)
         txt += '\nFor documentation see:\n  ' + doc
