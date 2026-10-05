@@ -191,7 +191,11 @@ class LinbitDistribution(Distribution):
             v = self._version
             if '.' in v:
                 v = v.split('.')
-                v = v[0] + '-sp' + v[1]
+                # SLES 16 replaced service packs with minor releases (sles16.0)
+                if int(v[0]) >= 16:
+                    v = v[0] + '.' + v[1]
+                else:
+                    v = v[0] + '-sp' + v[1]
             # else: TODO(rck): actually I don't know how non SPx looks like
             # in the repo it is just like "sles12"
             return 'sles{0}'.format(v)
